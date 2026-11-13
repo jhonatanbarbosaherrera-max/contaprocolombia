@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas | ContaPro Colombia</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .contenedor {
+            max-width: 950px;
+            margin: auto;
+            background: #242424;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        h1, h2 { color: #e63946; }
+
+        h2 {
+            font-size: 19px;
+            margin-top: 28px;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 6px;
+            background: white;
+            color: #151515;
+        }
+
+        button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #e63946;
+            color: white;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        button:hover { background: #c92e3a; }
+
+        .secundario { background: #444; }
+
+        .fila {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 12px;
+        }
+
+        .fila label { margin-top: 0; }
+
+        .total {
+            margin-top: 25px;
+            padding: 18px;
+            background: #151515;
+            border-radius: 8px;
+            font-size: 22px;
+            color: #5ee18b;
+        }
+
+        .mensaje {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .error {
+            background: #542323;
+            color: #ffaaaa;
+        }
+
+        .exito {
+            background: #17452b;
+            color: #a5ffc2;
+        }
+
+        .ayuda {
+            color: #bbb;
+            font-size: 13px;
+        }
+
+        a { color: white; }
+
+        @media(max-width: 650px) {
+            body { padding: 10px; }
+            .contenedor { padding: 16px; }
+            .fila { grid-template-columns: 1fr 1fr; }
+            .fila .campo-producto { grid-column: 1 / -1; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="contenedor">
+
+    <h1>Registrar venta</h1>
+    <p>Selecciona el cliente y los productos que deseas vender.</p>
+
+    {% if error %}
+        <div class="mensaje error">{{ error }}</div>
+    {% endif %}
+
+    {% if guardada %}
+        <div class="mensaje exito">
+            ¡Venta registrada correctamente!
+        </div>
+    {% endif %}
+
+    <form action="/ventas" method="post" id="formVenta">
+
+        <h2>1. Datos del cliente</h2>
+
+        <label>Número de identificación</label>
+
+        <input
+            type="text"
+            name="cliente_documento"
+            id="cliente_documento"
+            required
+            placeholder="Número de cédula o identificación"
+        >
+
+        <button type="button" id="buscarCliente">
+            Buscar cliente
+        </button>
+
+        <p id="estadoCliente" class="ayuda">
+            Escribe la identificación y pulsa Buscar cliente.
+        </p>
+
+        <label>Nombre del cliente</label>
+        <input
+            type="text"
+            name="cliente_nombre"
+            id="cliente_nombre"
+            placeholder="Nombre completo"
+        >
+
+        <label>Teléfono</label>
+        <input
+            type="text"
+            name="cliente_telefono"
+            id="cliente_telefono"
+            placeholder="Teléfono"
+        >
+
+        <label>Correo</label>
+        <input
+            type="email"
+            name="cliente_correo"
+            id="cliente_correo"
+            placeholder="Correo electrónico"
+        >
+
+        <label>Dirección</label>
+        <input
+            type="text"
+            name="cliente_direccion"
+            id="cliente_direccion"
+            placeholder="Dirección"
+        >
+
+        <h2>2. Productos de la venta</h2>
+
+        <div id="productos">
+
+            <div class="fila producto-fila">
+
+                <div class="campo-producto">
+                    <label>Producto</label>
+                    <select name="producto_id" class="producto" required>
+                        <option value="">Seleccionar producto</option>
+
+                        {% for producto in productos %}
+                            <option
+                                value="{{ producto.id }}"
+                                data-precio="{{ producto.precio_venta }}"
+                                data-stock="{{ producto.stock }}"
+                            >
+                                {{ producto.nombre }}
+                                - Stock: {{ producto.stock }}
+                                - ${{ producto.precio_venta }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>Cantidad</label>
+                    <input
+                        type="number"
+                        name="cantidad"
+                        class="cantidad"
+                        min="1"
+                        step="1"
+                        value="1"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label>Subtotal</label>
+                    <input
+                        type="text"
+                        class="subtotal"
+                        value="$ 0"
+                        readonly
+                    >
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="secundario eliminar"
+                        onclick="eliminarProducto(this)"
+                    >
+                        Quitar
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <button type="button" id="agregarProducto" class="secundario">
+            + Agregar otro producto
+        </button>
+
+        <div class="total">
+            TOTAL: <span id="totalVenta">$ 0</span>
+        </div>
+
+        <h2>3. Datos del pago</h2>
+
+        <label>Fecha de venta</label>
+        <input
+            type="date"
+            name="fecha"
+            value="{{ fecha }}"
+            required
+        >
+
+        <label>Método de pago</label>
+        <select name="metodo_pago" required>
+            <option value="">Seleccionar</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Otro">Otro</option>
+        </select>
+
+        <label>Cuenta donde ingresa el dinero</label>
+        <select name="cuenta_id" required>
+            <option value="">Seleccionar cuenta</option>
+
+            {% for cuenta in cuentas %}
+                <option value="{{ cuenta.id }}">
+                    {{ cuenta.nombre }} - {{ cuenta.tipo }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">
+            Guardar venta
+        </button>
+
+    </form>
+
+    <p><a href="/">Volver al panel principal</a></p>
+
+</div>
+
+<script>
+    const productos = document.getElementById("productos");
+    const totalVenta = document.getElementById("totalVenta");
+
+    function pesos(valor) {
+        return "$ " + Number(valor).toLocaleString("es-CO", {
+            maximumFractionDigits: 0
+        });
+    }
+
+    function calcularTotal() {
+        let total = 0;
+
+        document.querySelectorAll(".producto-fila").forEach(fila => {
+            const select = fila.querySelector(".producto");
+            const cantidad = fila.querySelector(".cantidad");
+            const subtotal = fila.querySelector(".subtotal");
+
+            const opcion = select.options[select.selectedIndex];
+
+            const precio = Number(opcion?.dataset.precio || 0);
+            const stock = Number(opcion?.dataset.stock || 0);
+            const unidades = Number(cantidad.value || 0);
+
+            const valor = precio * unidades;
+
+            subtotal.value = pesos(valor);
+
+            if (select.value && unidades > 0) {
+                total += valor;
+            }
+
+            cantidad.max = stock || "";
+        });
+
+        totalVenta.textContent = pesos(total);
+    }
+
+    function agregarEventos(fila) {
+        fila.querySelector(".producto").addEventListener(
+            "change",
+            calcularTotal
+        );
+
+        fila.querySelector(".cantidad").addEventListener(
+            "input",
+            calcularTotal
+        );
+    }
+
+    function eliminarProducto(boton) {
+        const filas = document.querySelectorAll(".producto-fila");
+
+        if (filas.length <= 1) {
+            alert("Debe existir al menos un producto.");
+            return;
+        }
+
+        boton.closest(".producto-fila").remove();
+        calcularTotal();
+    }
+
+    document.getElementById("agregarProducto").addEventListener(
+        "click",
+        function() {
+            const original = document.querySelector(".producto-fila");
+            const nueva = original.cloneNode(true);
+
+            nueva.querySelector(".producto").selectedIndex = 0;
+            nueva.querySelector(".cantidad").value = 1;
+            nueva.querySelector(".subtotal").value = "$ 0";
+
+            productos.appendChild(nueva);
+            agregarEventos(nueva);
+            calcularTotal();
+        }
+    );
+
+    document.querySelectorAll(".producto-fila").forEach(agregarEventos);
+
+    document.getElementById("buscarCliente").addEventListener(
+        "click",
+        async function() {
+            const documento = document.getElementById(
+                "cliente_documento"
+            ).value.trim();
+
+            const estado = document.getElementById("estadoCliente");
+            const nombre = document.getElementById("cliente_nombre");
+
+            if (!documento) {
+                estado.textContent = "Escribe la identificación.";
+                return;
+            }
+
+            estado.textContent = "Buscando cliente...";
+
+            try {
+                const respuesta = await fetch(
+                    "/ventas/buscar-cliente?documento=" +
+                    encodeURIComponent(documento)
+                );
+
+                const datos = await respuesta.json();
+
+                if (!respuesta.ok) {
+                    throw new Error(datos.error || "No se pudo buscar.");
+                }
+
+                if (datos.encontrado) {
+                    const cliente = datos.cliente;
+
+                    nombre.value = cliente.nombre || "";
+                    document.getElementById("cliente_telefono").value =
+                        cliente.telefono || "";
+                    document.getElementById("cliente_correo").value =
+                        cliente.correo || "";
+                    document.getElementById("cliente_direccion").value =
+                        cliente.direccion || "";
+
+                    nombre.required = false;
+                    estado.textContent = "Cliente encontrado.";
+                } else {
+                    nombre.value = "";
+                    document.getElementById("cliente_telefono").value = "";
+                    document.getElementById("cliente_correo").value = "";
+                    document.getElementById("cliente_direccion").value = "";
+
+                    nombre.required = true;
+                    estado.textContent =
+                        "Cliente no registrado. Completa su nombre para registrarlo.";
+                }
+
+            } catch (error) {
+                estado.textContent = error.message;
+            }
+        }
+    );
+
+    document.getElementById("formVenta").addEventListener(
+        "submit",
+        function(event) {
+            const filas = document.querySelectorAll(".producto-fila");
+
+            if (filas.length === 0) {
+                event.preventDefault();
+                alert("Agrega al menos un producto.");
+                return;
+            }
+
+            for (const fila of filas) {
+                const select = fila.querySelector(".producto");
+                const cantidad = fila.querySelector(".cantidad");
+
+                const opcion = select.options[select.selectedIndex];
+                const stock = Number(opcion?.dataset.stock || 0);
+                const unidades = Number(cantidad.value);
+
+                if (!select.value || unidades <= 0) {
+                    event.preventDefault();
+                    alert("Selecciona un producto y una cantidad válida.");
+                    return;
+                }
+
+                if (unidades > stock) {
+                    event.preventDefault();
+                    alert("La cantidad supera las existencias disponibles.");
+                    return;
+                }
+            }
+
+            if (!document.getElementById("cliente_nombre").value.trim()) {
+                const documento = document.getElementById(
+                    "cliente_documento"
+                ).value.trim();
+
+                if (!documento) {
+                    event.preventDefault();
+                    alert("Debes identificar al cliente.");
+                }
+            }
+        }
+    );
+
+    calcularTotal();
+</script>
+
+</body>
+</html>

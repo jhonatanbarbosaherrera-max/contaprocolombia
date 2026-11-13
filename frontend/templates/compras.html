@@ -1,0 +1,586 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras | ContaPro Colombia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #e53935;
+        }
+
+        .panel {
+            background: #222;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #303030;
+            color: white;
+        }
+
+        button,
+        .volver {
+            display: inline-block;
+            padding: 11px 16px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 6px;
+            background: #d32f2f;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover,
+        .volver:hover {
+            background: #b71c1c;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .producto {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 12px;
+            padding: 12px;
+            background: #292929;
+            border-radius: 8px;
+        }
+
+        .quitar {
+            background: #555;
+        }
+
+        .total {
+            font-size: 22px;
+            color: #4caf50;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 500px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #444;
+            text-align: left;
+        }
+
+        th {
+            color: #ff5252;
+        }
+
+        .error {
+            background: #5c2020;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .tabla {
+            overflow-x: auto;
+        }
+
+        .mensaje {
+            color: #ffb74d;
+            margin-top: 10px;
+        }
+
+        .ayuda {
+            color: #aaa;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px;
+            }
+
+            .producto {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Gestión de compras</h1>
+
+    <a class="volver" href="/">← Volver al panel</a>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <section class="panel">
+
+        <h2>Registrar nueva compra</h2>
+
+        <form action="/compras" method="POST" id="formCompra">
+
+            <label>Proveedor</label>
+
+            <select name="proveedor_id" required>
+                <option value="">Seleccionar proveedor</option>
+
+                {% for proveedor in proveedores %}
+                    <option value="{{ proveedor.id }}">
+                        {{ proveedor.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if not proveedores %}
+                <p class="mensaje">
+                    No hay proveedores registrados. Registra uno antes de continuar.
+                </p>
+            {% endif %}
+
+            <label>Fecha de compra</label>
+
+            <input
+                type="date"
+                name="fecha"
+                id="fecha"
+                required
+            >
+
+            <label>Método de pago</label>
+
+            <select name="metodo_pago" id="metodoPago" required>
+                <option value="">Seleccionar método</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Crédito">Crédito</option>
+            </select>
+
+            <div id="seccionCuenta">
+
+                <label>Cuenta desde donde pagaste</label>
+
+                <select name="cuenta_id" id="cuentaId">
+                    <option value="">Seleccionar cuenta</option>
+
+                    {% for cuenta in cuentas %}
+                        <option value="{{ cuenta.id }}">
+                            {{ cuenta.nombre }} - {{ cuenta.tipo }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <p class="ayuda">
+                    El valor de la compra se descontará de la cuenta seleccionada.
+                </p>
+
+                {% if not cuentas %}
+                    <p class="mensaje">
+                        No tienes cuentas financieras registradas. Crea una en Caja y bancos.
+                    </p>
+                {% endif %}
+
+            </div>
+
+            <p class="ayuda" id="mensajeCredito" style="display:none;">
+                Esta compra quedará pendiente de pago. No se descontará dinero de tus cuentas.
+            </p>
+
+            <label>Descripción</label>
+
+            <input
+                type="text"
+                name="descripcion"
+                maxlength="250"
+                placeholder="Descripción de la compra"
+            >
+
+            <h3>Productos</h3>
+
+            <div id="productos"></div>
+
+            {% if not productos %}
+                <p class="mensaje">
+                    No hay productos registrados en el inventario.
+                </p>
+            {% endif %}
+
+            <button type="button" id="btnAgregar">
+                + Agregar producto
+            </button>
+
+            <div class="total">
+                Total: $ <span id="total">0</span>
+            </div>
+
+            <button
+                type="submit"
+                id="btnRegistrar"
+                {% if not proveedores or not productos %}disabled{% endif %}
+            >
+                Registrar compra
+            </button>
+
+        </form>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Historial de compras</h2>
+
+        <div class="tabla">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Descripción</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for compra in compras %}
+
+                    <tr>
+                        <td>{{ compra.fecha }}</td>
+                        <td>{{ compra.proveedor_nombre or "No disponible" }}</td>
+                        <td>{{ compra.descripcion or "Compra" }}</td>
+                        <td>
+                            $ {{ "{:,.0f}".format(compra.total|float) }}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="4">
+                            Todavía no hay compras registradas.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script id="datosProductos" type="application/json">
+    {{ productos | tojson }}
+</script>
+
+<script>
+
+    const productosDisponibles = JSON.parse(
+        document.getElementById("datosProductos").textContent
+    );
+
+    const contenedor = document.getElementById("productos");
+    const totalElemento = document.getElementById("total");
+    const formulario = document.getElementById("formCompra");
+
+    const fecha = document.getElementById("fecha");
+    const metodoPago = document.getElementById("metodoPago");
+    const cuentaId = document.getElementById("cuentaId");
+    const seccionCuenta = document.getElementById("seccionCuenta");
+    const mensajeCredito = document.getElementById("mensajeCredito");
+
+    const hoy = new Date();
+
+    fecha.value = [
+        hoy.getFullYear(),
+        String(hoy.getMonth() + 1).padStart(2, "0"),
+        String(hoy.getDate()).padStart(2, "0")
+    ].join("-");
+
+
+    function actualizarCuenta() {
+
+        const esCredito = metodoPago.value === "Crédito";
+
+        if (esCredito) {
+
+            seccionCuenta.style.display = "none";
+            mensajeCredito.style.display = "block";
+
+            cuentaId.required = false;
+            cuentaId.disabled = true;
+            cuentaId.value = "";
+
+        } else {
+
+            seccionCuenta.style.display = "block";
+            mensajeCredito.style.display = "none";
+
+            cuentaId.disabled = false;
+            cuentaId.required = true;
+
+        }
+    }
+
+    metodoPago.addEventListener("change", actualizarCuenta);
+
+    actualizarCuenta();
+
+
+    function agregarProducto() {
+
+        const fila = document.createElement("div");
+        fila.className = "producto";
+
+        const grupoProducto = document.createElement("div");
+
+        const labelProducto = document.createElement("label");
+        labelProducto.textContent = "Producto";
+
+        const selector = document.createElement("select");
+        selector.name = "producto_id";
+        selector.required = true;
+
+        const opcionInicial = document.createElement("option");
+        opcionInicial.value = "";
+        opcionInicial.textContent = "Seleccionar producto";
+
+        selector.appendChild(opcionInicial);
+
+        productosDisponibles.forEach(producto => {
+
+            const opcion = document.createElement("option");
+
+            opcion.value = producto.id;
+            opcion.textContent = producto.nombre;
+            opcion.dataset.precio = producto.precio_compra || 0;
+
+            selector.appendChild(opcion);
+        });
+
+        grupoProducto.appendChild(labelProducto);
+        grupoProducto.appendChild(selector);
+
+
+        const grupoCantidad = document.createElement("div");
+
+        const labelCantidad = document.createElement("label");
+        labelCantidad.textContent = "Cantidad";
+
+        const inputCantidad = document.createElement("input");
+
+        inputCantidad.type = "number";
+        inputCantidad.name = "cantidad";
+        inputCantidad.min = "1";
+        inputCantidad.step = "1";
+        inputCantidad.value = "1";
+        inputCantidad.required = true;
+
+        grupoCantidad.appendChild(labelCantidad);
+        grupoCantidad.appendChild(inputCantidad);
+
+
+        const grupoPrecio = document.createElement("div");
+
+        const labelPrecio = document.createElement("label");
+        labelPrecio.textContent = "Precio unitario";
+
+        const inputPrecio = document.createElement("input");
+
+        inputPrecio.type = "number";
+        inputPrecio.name = "precio_unitario";
+        inputPrecio.min = "0.01";
+        inputPrecio.step = "0.01";
+        inputPrecio.required = true;
+
+        grupoPrecio.appendChild(labelPrecio);
+        grupoPrecio.appendChild(inputPrecio);
+
+
+        const botonQuitar = document.createElement("button");
+
+        botonQuitar.type = "button";
+        botonQuitar.className = "quitar";
+        botonQuitar.textContent = "Quitar";
+
+        botonQuitar.addEventListener("click", function () {
+
+            fila.remove();
+            calcularTotal();
+
+        });
+
+
+        selector.addEventListener("change", function () {
+
+            const opcion = selector.options[selector.selectedIndex];
+
+            inputPrecio.value = opcion.dataset.precio || "";
+
+            calcularTotal();
+
+        });
+
+        inputCantidad.addEventListener("input", calcularTotal);
+        inputPrecio.addEventListener("input", calcularTotal);
+
+
+        fila.appendChild(grupoProducto);
+        fila.appendChild(grupoCantidad);
+        fila.appendChild(grupoPrecio);
+        fila.appendChild(botonQuitar);
+
+        contenedor.appendChild(fila);
+
+        calcularTotal();
+    }
+
+
+    function calcularTotal() {
+
+        let total = 0;
+
+        document.querySelectorAll(".producto").forEach(fila => {
+
+            const cantidad = Number(
+                fila.querySelector('[name="cantidad"]').value
+            ) || 0;
+
+            const precio = Number(
+                fila.querySelector('[name="precio_unitario"]').value
+            ) || 0;
+
+            total += cantidad * precio;
+
+        });
+
+        totalElemento.textContent = total.toLocaleString("es-CO", {
+            maximumFractionDigits: 2
+        });
+    }
+
+
+    document.getElementById("btnAgregar").addEventListener(
+        "click",
+        agregarProducto
+    );
+
+
+    formulario.addEventListener("submit", function (evento) {
+
+        const filas = document.querySelectorAll(".producto");
+
+        if (filas.length === 0) {
+
+            evento.preventDefault();
+            alert("Agrega al menos un producto.");
+            return;
+        }
+
+        if (
+            metodoPago.value !== "Crédito" &&
+            !cuentaId.value
+        ) {
+
+            evento.preventDefault();
+            alert("Selecciona la cuenta desde donde pagaste.");
+            return;
+        }
+
+        for (const fila of filas) {
+
+            const producto = fila.querySelector(
+                '[name="producto_id"]'
+            ).value;
+
+            const cantidad = Number(
+                fila.querySelector('[name="cantidad"]').value
+            );
+
+            const precio = Number(
+                fila.querySelector('[name="precio_unitario"]').value
+            );
+
+            if (
+                !producto ||
+                !Number.isInteger(cantidad) ||
+                cantidad <= 0 ||
+                !Number.isFinite(precio) ||
+                precio <= 0
+            ) {
+
+                evento.preventDefault();
+
+                alert("Revisa los productos, cantidades y precios.");
+
+                return;
+            }
+        }
+
+        const boton = document.getElementById("btnRegistrar");
+
+        boton.disabled = true;
+        boton.textContent = "Registrando compra...";
+
+    });
+
+
+    agregarProducto();
+
+</script>
+
+</body>
+</html>

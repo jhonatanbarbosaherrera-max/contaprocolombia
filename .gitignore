@@ -1,0 +1,24 @@
+
+# Variables y claves privadas
+.env
+.env.*
+
+# Permitir plantilla sin claves privadas
+!.env.example
+
+# Entorno virtual de Python
+venv/
+.venv/
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Configuración de editores
+.vscode/
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

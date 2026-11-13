@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Caja y bancos | ContaPro Colombia</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1, h2 {
+            color: #e53935;
+        }
+
+        .volver {
+            color: white;
+            text-decoration: none;
+            background: #292929;
+            padding: 12px 18px;
+            border-radius: 7px;
+        }
+
+        .resumen {
+            background: #242424;
+            border-left: 5px solid #e53935;
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 25px;
+        }
+
+        .resumen strong {
+            display: block;
+            font-size: 28px;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background: #222;
+            padding: 22px;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            margin: 13px 0 7px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #151515;
+            color: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 18px;
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #c62828;
+        }
+
+        .cuenta {
+            background: #292929;
+            border-radius: 8px;
+            padding: 17px;
+            margin-bottom: 12px;
+        }
+
+        .cuenta strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .saldo {
+            color: #4caf50;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 750px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #444;
+            text-align: left;
+        }
+
+        th {
+            color: #e53935;
+        }
+
+        .entrada {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .salida {
+            color: #ff6565;
+            font-weight: bold;
+        }
+
+        .origen {
+            color: #bbbbbb;
+        }
+
+        .error {
+            background: #572020;
+            color: #fff;
+            padding: 13px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+        }
+
+        .vacio {
+            color: #aaa;
+            padding: 15px 0;
+        }
+
+        .ayuda {
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <header class="encabezado">
+
+        <div>
+            <h1>Caja y bancos</h1>
+            <p>Administra el dinero y las cuentas de tu negocio.</p>
+        </div>
+
+        <a href="/" class="volver">← Volver al panel</a>
+
+    </header>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <!-- SALDO TOTAL -->
+
+    <section class="resumen">
+
+        <span>Dinero disponible en tus cuentas</span>
+
+        <strong>{{ total_formateado }}</strong>
+
+    </section>
+
+    <!-- FORMULARIOS -->
+
+    <section class="grid">
+
+        <!-- CREAR CUENTA -->
+
+        <article class="panel">
+
+            <h2>Nueva cuenta</h2>
+
+            <form action="/caja-bancos/cuentas" method="POST">
+
+                <label>Nombre de la cuenta</label>
+
+                <input
+                    type="text"
+                    name="nombre"
+                    placeholder="Ej. Caja principal"
+                    required
+                >
+
+                <label>Tipo de cuenta</label>
+
+                <select name="tipo" required>
+
+                    <option value="">Seleccionar tipo</option>
+                    <option value="caja">Efectivo / Caja</option>
+                    <option value="banco">Cuenta bancaria</option>
+                    <option value="billetera">Billetera digital</option>
+
+                </select>
+
+                <label>Entidad o banco</label>
+
+                <input
+                    type="text"
+                    name="entidad"
+                    placeholder="Ej. Bancolombia, Nequi..."
+                >
+
+                <label>Saldo inicial (COP)</label>
+
+                <input
+                    type="number"
+                    name="saldo_inicial"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                    required
+                >
+
+                <button type="submit">
+                    Crear cuenta
+                </button>
+
+            </form>
+
+        </article>
+
+        <!-- REGISTRAR MOVIMIENTO MANUAL -->
+
+        <article class="panel">
+
+            <h2>Nuevo movimiento manual</h2>
+
+            {% if cuentas %}
+
+                <form action="/caja-bancos/movimientos" method="POST">
+
+                    <label>Cuenta</label>
+
+                    <select name="cuenta_id" required>
+
+                        <option value="">Seleccionar cuenta</option>
+
+                        {% for cuenta in cuentas %}
+
+                            <option value="{{ cuenta.id }}">
+                                {{ cuenta.nombre }} - {{ cuenta.saldo_formateado }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <label>Tipo de movimiento</label>
+
+                    <select name="tipo" required>
+
+                        <option value="">Seleccionar</option>
+                        <option value="ingreso">Entrada de dinero</option>
+                        <option value="egreso">Salida de dinero</option>
+
+                    </select>
+
+                    <label>Descripción</label>
+
+                    <input
+                        type="text"
+                        name="descripcion"
+                        placeholder="Ej. Ingreso de efectivo"
+                        required
+                    >
+
+                    <label>Valor (COP)</label>
+
+                    <input
+                        type="number"
+                        name="valor"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    >
+
+                    <label>Fecha</label>
+
+                    <input
+                        type="date"
+                        name="fecha"
+                        required
+                        id="fechaMovimiento"
+                    >
+
+                    <label>Referencia</label>
+
+                    <input
+                        type="text"
+                        name="referencia"
+                        placeholder="Número de comprobante"
+                    >
+
+                    <label>Observaciones</label>
+
+                    <textarea
+                        name="observaciones"
+                        placeholder="Información adicional..."
+                    ></textarea>
+
+                    <button type="submit">
+                        Registrar movimiento
+                    </button>
+
+                </form>
+
+                <p class="ayuda">
+                    Utiliza esta opción para movimientos que no correspondan
+                    a una venta o gasto ya registrado. Así evitas duplicar operaciones.
+                </p>
+
+            {% else %}
+
+                <p class="vacio">
+                    Primero debes crear una cuenta para registrar movimientos.
+                </p>
+
+            {% endif %}
+
+        </article>
+
+    </section>
+
+    <!-- CUENTAS REGISTRADAS -->
+
+    <section class="panel">
+
+        <h2>Mis cuentas</h2>
+
+        {% if cuentas %}
+
+            <div class="grid">
+
+                {% for cuenta in cuentas %}
+
+                    <div class="cuenta">
+
+                        <strong>{{ cuenta.nombre }}</strong>
+
+                        <p>
+                            Tipo:
+                            {% if cuenta.tipo == "caja" %}
+                                Efectivo / Caja
+                            {% elif cuenta.tipo == "banco" %}
+                                Banco
+                            {% else %}
+                                Billetera digital
+                            {% endif %}
+                        </p>
+
+                        {% if cuenta.entidad %}
+                            <p>Entidad: {{ cuenta.entidad }}</p>
+                        {% endif %}
+
+                        <span class="saldo">
+                            {{ cuenta.saldo_formateado }}
+                        </span>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="vacio">
+                Todavía no tienes cuentas registradas.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+    <!-- HISTORIAL -->
+
+    <section class="panel" style="margin-top: 25px;">
+
+        <h2>Historial de movimientos</h2>
+
+        {% if movimientos %}
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Origen</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Referencia</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for movimiento in movimientos %}
+
+                            <tr>
+
+                                <td>{{ movimiento.fecha }}</td>
+
+                                <td>{{ movimiento.descripcion }}</td>
+
+                                <td class="origen">
+                                    {{ movimiento.origen or "Movimiento" }}
+                                </td>
+
+                                <td>
+                                    {% if movimiento.tipo == "ingreso" %}
+                                        <span class="entrada">Entrada</span>
+                                    {% else %}
+                                        <span class="salida">Salida</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    $ {{ "{:,.0f}".format(movimiento.valor|float).replace(",", ".") }}
+                                </td>
+
+                                <td>
+                                    {{ movimiento.referencia or "-" }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <p class="vacio">
+                Todavía no hay movimientos registrados.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+    <footer style="text-align:center; margin-top:30px; color:#999;">
+        ContaPro Colombia © 2026
+    </footer>
+
+</div>
+
+<script>
+    const campoFecha = document.getElementById("fechaMovimiento");
+
+    if (campoFecha) {
+        campoFecha.value = new Date().toLocaleDateString("en-CA");
+    }
+</script>
+
+</body>
+</html>

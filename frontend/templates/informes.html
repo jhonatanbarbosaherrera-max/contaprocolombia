@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Informes | ContaPro Colombia</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .informes-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .encabezado {
+            margin-bottom: 25px;
+        }
+
+        .encabezado h1 {
+            margin-bottom: 8px;
+        }
+
+        .encabezado p {
+            color: #aaa;
+        }
+
+        .filtros {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 25px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .campo label {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .campo input {
+            padding: 11px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #151515;
+            color: white;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #d62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #a91f1f;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .tarjeta {
+            background: #222;
+            padding: 22px;
+            border-radius: 10px;
+            border-left: 4px solid #d62828;
+        }
+
+        .tarjeta span {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .tarjeta h2 {
+            margin: 15px 0 5px;
+            font-size: 25px;
+        }
+
+        .tarjeta small {
+            color: #888;
+        }
+
+        .seccion {
+            background: #222;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .seccion h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #383838;
+            text-align: left;
+        }
+
+        th {
+            color: #e64b4b;
+            background: #292929;
+        }
+
+        td {
+            color: #ddd;
+        }
+
+        .estado-bajo {
+            color: #ff7777;
+            font-weight: bold;
+        }
+
+        .estado-normal {
+            color: #7ed69a;
+        }
+
+        .volver {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #ff6666;
+            text-decoration: none;
+        }
+
+        .volver:hover {
+            text-decoration: underline;
+        }
+
+        .mensaje-vacio {
+            color: #999;
+            padding: 15px 0;
+        }
+
+        @media (max-width: 600px) {
+            .informes-container {
+                padding: 18px;
+            }
+
+            .filtros {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .campo input,
+            .filtros button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="informes-container">
+
+        <a href="/" class="volver">← Volver al panel principal</a>
+
+        <header class="encabezado">
+            <h1>Informes del negocio</h1>
+            <p>Consulta los resultados y el estado de tu empresa.</p>
+        </header>
+
+        <!-- FILTROS DE FECHA -->
+
+        <form method="GET" action="/informes" class="filtros">
+
+            <div class="campo">
+                <label for="desde">Fecha inicial</label>
+                <input
+                    type="date"
+                    id="desde"
+                    name="desde"
+                    value="{{ desde }}"
+                    required
+                >
+            </div>
+
+            <div class="campo">
+                <label for="hasta">Fecha final</label>
+                <input
+                    type="date"
+                    id="hasta"
+                    name="hasta"
+                    value="{{ hasta }}"
+                    required
+                >
+            </div>
+
+            <button type="submit">Consultar informe</button>
+
+        </form>
+
+        <!-- RESUMEN FINANCIERO -->
+
+        <section class="tarjetas">
+
+            <article class="tarjeta">
+                <span>Total de ventas</span>
+                <h2>{{ resumen.ventas }}</h2>
+                <small>Ingresos registrados en el periodo</small>
+            </article>
+
+            <article class="tarjeta">
+                <span>Total de gastos</span>
+                <h2>{{ resumen.gastos }}</h2>
+                <small>Gastos registrados en el periodo</small>
+            </article>
+
+            <article class="tarjeta">
+                <span>Ganancia neta</span>
+                <h2>{{ resumen.ganancia }}</h2>
+                <small>Ventas menos gastos</small>
+            </article>
+
+            <article class="tarjeta">
+                <span>Operaciones</span>
+                <h2>{{ resumen.operaciones }}</h2>
+                <small>Ventas y gastos registrados</small>
+            </article>
+
+        </section>
+
+        <!-- INFORME DE INVENTARIO -->
+
+        <section class="seccion">
+
+            <h2>Informe de inventario</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Código</th>
+                        <th>Existencias</th>
+                        <th>Stock mínimo</th>
+                        <th>Precio de compra</th>
+                        <th>Precio de venta</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for producto in productos %}
+
+                    <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.codigo or 'Sin código' }}</td>
+                        <td>{{ producto.stock }}</td>
+                        <td>{{ producto.stock_minimo }}</td>
+                        <td>
+                            ${{ "{:,.0f}".format(producto.precio_compra|float).replace(",", ".") }}
+                        </td>
+                        <td>
+                            ${{ "{:,.0f}".format(producto.precio_venta|float).replace(",", ".") }}
+                        </td>
+                        <td>
+                            {% if producto.stock|float <= producto.stock_minimo|float %}
+                                <span class="estado-bajo">Stock bajo</span>
+                            {% else %}
+                                <span class="estado-normal">Disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7" class="mensaje-vacio">
+                            No hay productos registrados.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </section>
+
+        <!-- PRODUCTOS CON STOCK BAJO -->
+
+        <section class="seccion">
+
+            <h2>Productos que necesitan reposición</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Existencias actuales</th>
+                        <th>Stock mínimo</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for producto in stock_bajo %}
+
+                    <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.stock }}</td>
+                        <td>{{ producto.stock_minimo }}</td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3" class="mensaje-vacio">
+                            No hay productos con stock bajo.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </section>
+
+        <footer>
+            <p>ContaPro Colombia | Informes empresariales</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

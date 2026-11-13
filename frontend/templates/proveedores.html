@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Proveedores | ContaPro Colombia</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .provider-container {
+            max-width: 1250px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        h1, h2 {
+            color: #e53935;
+        }
+
+        .provider-form,
+        .provider-table {
+            background: #202020;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #333;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .form-grid input,
+        .form-grid textarea,
+        .edit-form input,
+        .edit-form textarea,
+        .search-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 7px;
+            background: #151515;
+            color: white;
+            font: inherit;
+        }
+
+        .form-grid textarea,
+        .edit-form textarea {
+            grid-column: 1 / -1;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button,
+        .button {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 7px;
+            background: #d71920;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font: inherit;
+        }
+
+        button:hover,
+        .button:hover {
+            background: #b9151b;
+        }
+
+        .secondary {
+            background: #444;
+        }
+
+        .secondary:hover {
+            background: #555;
+        }
+
+        .danger {
+            background: #962020;
+        }
+
+        .danger:hover {
+            background: #721818;
+        }
+
+        .provider-form button {
+            margin-top: 18px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #ff5555;
+            text-decoration: none;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 7px;
+            background: #302020;
+            color: #ffaaaa;
+        }
+
+        .muted {
+            color: #aaa;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .provider-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .provider-table th,
+        .provider-table td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #383838;
+            vertical-align: top;
+        }
+
+        .provider-table th {
+            color: #ff5555;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        summary {
+            color: #ff7777;
+            cursor: pointer;
+        }
+
+        .edit-form {
+            min-width: 230px;
+            padding-top: 12px;
+        }
+
+        .edit-form input,
+        .edit-form textarea {
+            margin-bottom: 8px;
+        }
+
+        .edit-form button {
+            margin-top: 5px;
+        }
+
+        @media (max-width: 650px) {
+            .provider-container {
+                padding: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid textarea {
+                grid-column: auto;
+            }
+
+            .provider-form,
+            .provider-table {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="provider-container">
+
+    <a href="/" class="back-link">
+        ← Volver al panel principal
+    </a>
+
+    <h1>Gestión de proveedores</h1>
+
+    <p class="muted">
+        Registra y administra los proveedores de tu negocio.
+    </p>
+
+    <!-- REGISTRAR PROVEEDOR -->
+
+    <section class="provider-form">
+
+        <h2>Registrar proveedor</h2>
+
+        {% if error %}
+            <div class="message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/proveedores">
+
+            <div class="form-grid">
+
+                <input
+                    type="text"
+                    name="nombre"
+                    placeholder="Nombre del proveedor"
+                    maxlength="150"
+                    required>
+
+                <input
+                    type="text"
+                    name="documento"
+                    placeholder="NIT o documento"
+                    maxlength="50">
+
+                <input
+                    type="text"
+                    name="telefono"
+                    placeholder="Teléfono"
+                    maxlength="30">
+
+                <input
+                    type="email"
+                    name="correo"
+                    placeholder="Correo electrónico"
+                    maxlength="150">
+
+                <textarea
+                    name="direccion"
+                    placeholder="Dirección"
+                    maxlength="300"></textarea>
+
+            </div>
+
+            <button type="submit">
+                Guardar proveedor
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- LISTADO DE PROVEEDORES -->
+
+    <section class="provider-table">
+
+        <h2>Proveedores registrados</h2>
+
+        <!-- BUSCADOR -->
+
+        <form class="search-form" method="GET" action="/proveedores">
+
+            <input
+                type="search"
+                name="buscar"
+                placeholder="Buscar por nombre, documento, teléfono o correo"
+                value="{{ buscar or '' }}">
+
+            <button type="submit">
+                Buscar
+            </button>
+
+            <a href="/proveedores" class="button secondary">
+                Limpiar
+            </a>
+
+        </form>
+
+        <p class="muted">
+            Proveedores encontrados: {{ proveedores|length }}
+        </p>
+
+        <div class="table-responsive">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Dirección</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for proveedor in proveedores %}
+
+                    <tr>
+
+                        <td>{{ proveedor.nombre }}</td>
+
+                        <td>{{ proveedor.documento or '-' }}</td>
+
+                        <td>{{ proveedor.telefono or '-' }}</td>
+
+                        <td>{{ proveedor.correo or '-' }}</td>
+
+                        <td>{{ proveedor.direccion or '-' }}</td>
+
+                        <td>
+
+                            <div class="actions">
+
+                                <!-- EDITAR -->
+
+                                <details>
+
+                                    <summary>Editar</summary>
+
+                                    <form
+                                        class="edit-form"
+                                        method="POST"
+                                        action="/proveedores/editar/{{ proveedor.id }}">
+
+                                        <input
+                                            type="text"
+                                            name="nombre"
+                                            value="{{ proveedor.nombre }}"
+                                            placeholder="Nombre"
+                                            required>
+
+                                        <input
+                                            type="text"
+                                            name="documento"
+                                            value="{{ proveedor.documento or '' }}"
+                                            placeholder="Documento">
+
+                                        <input
+                                            type="text"
+                                            name="telefono"
+                                            value="{{ proveedor.telefono or '' }}"
+                                            placeholder="Teléfono">
+
+                                        <input
+                                            type="email"
+                                            name="correo"
+                                            value="{{ proveedor.correo or '' }}"
+                                            placeholder="Correo">
+
+                                        <textarea
+                                            name="direccion"
+                                            placeholder="Dirección">{{ proveedor.direccion or '' }}</textarea>
+
+                                        <button type="submit">
+                                            Guardar cambios
+                                        </button>
+
+                                    </form>
+
+                                </details>
+
+                                <!-- ELIMINAR -->
+
+                                <form
+                                    method="POST"
+                                    action="/proveedores/eliminar/{{ proveedor.id }}"
+                                    onsubmit="return confirm('¿Seguro que deseas eliminar este proveedor?');">
+
+                                    <button
+                                        type="submit"
+                                        class="danger">
+                                        Eliminar
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="6">
+                            Todavía no hay proveedores registrados.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar empresa | ContaPro</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #151515;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 35px;
+            background: #242424;
+            border-radius: 12px;
+            color: white;
+        }
+
+        h1 {
+            color: #e63946;
+            text-align: center;
+        }
+
+        p {
+            color: #aaa;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-top: 7px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #333;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 6px;
+            background: #e63946;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .error {
+            color: #ff7373;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <h1>ContaPro Colombia</h1>
+        <p>Registra los datos de tu empresa para comenzar.</p>
+
+        <form action="/empresa" method="POST">
+            <label>Nombre de la empresa</label>
+            <input type="text" name="nombre" required>
+
+            <label>NIT</label>
+            <input type="text" name="nit" required>
+
+            <label>Teléfono</label>
+            <input type="tel" name="telefono" required>
+
+            <label>Correo electrónico</label>
+            <input type="email" name="correo" required>
+
+            <label>Dirección</label>
+            <input type="text" name="direccion" required>
+
+            <button type="submit">GUARDAR EMPRESA</button>
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registrar gasto | ContaPro</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            margin: 0;
+        }
+
+        .formulario {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 25px;
+            background: #242424;
+            border-radius: 12px;
+        }
+
+        h1 {
+            color: #e63946;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: none;
+            border-radius: 6px;
+            background: white;
+            color: #151515;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 22px;
+            padding: 13px;
+            background: #e63946;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #c92e3a;
+        }
+
+        a {
+            color: white;
+        }
+
+        .error {
+            color: #ff7070;
+        }
+
+        .ayuda {
+            color: #bbbbbb;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="formulario">
+
+        <h1>Registrar gasto</h1>
+
+        <p>Ingresa los datos del gasto de tu negocio.</p>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form action="/gastos" method="post">
+
+            <label>Descripción</label>
+
+            <input
+                type="text"
+                name="descripcion"
+                maxlength="200"
+                placeholder="Ejemplo: Compra de mercancía"
+                required
+            >
+
+            <label>Valor del gasto</label>
+
+            <input
+                type="number"
+                name="valor"
+                min="1"
+                step="0.01"
+                placeholder="Ejemplo: 50000"
+                required
+            >
+
+            <label>Fecha</label>
+
+            <input
+                type="date"
+                name="fecha"
+                required
+            >
+
+            <label>Método de pago</label>
+
+            <select name="metodo_pago" required>
+                <option value="">Seleccionar</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Otro">Otro</option>
+            </select>
+
+            <label>Cuenta desde donde pagaste</label>
+
+            <select name="cuenta_id" required>
+                <option value="">Seleccionar cuenta</option>
+
+                {% for cuenta in cuentas %}
+                    <option value="{{ cuenta.id }}">
+                        {{ cuenta.nombre }} - {{ cuenta.tipo }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <p class="ayuda">
+                El valor de este gasto se descontará del saldo de la cuenta seleccionada.
+            </p>
+
+            <button type="submit">
+                Guardar gasto
+            </button>
+
+        </form>
+
+        <p>
+            <a href="/">Volver al panel principal</a>
+        </p>
+
+    </div>
+
+</body>
+
+</html>

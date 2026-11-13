@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panel principal | ContaPro Colombia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .encabezado {
+            background: #242424;
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 2px solid #e63946;
+        }
+
+        .encabezado h1 {
+            margin: 0;
+            color: #e63946;
+        }
+
+        .encabezado p {
+            margin-bottom: 0;
+            color: #bbb;
+        }
+
+        .cerrar {
+            background: #e63946;
+            color: white;
+            padding: 11px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .bienvenida {
+            margin-bottom: 25px;
+        }
+
+        .bienvenida p {
+            color: #aaa;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 35px;
+        }
+
+        .tarjeta-resumen {
+            background: #242424;
+            padding: 22px;
+            border-radius: 10px;
+            border-left: 4px solid #e63946;
+        }
+
+        .tarjeta-resumen span {
+            color: #aaa;
+        }
+
+        .tarjeta-resumen strong {
+            display: block;
+            font-size: 23px;
+            margin-top: 12px;
+        }
+
+        .seccion-titulo {
+            color: #e63946;
+            margin-bottom: 18px;
+        }
+
+        .modulos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .modulo {
+            display: block;
+            background: #242424;
+            padding: 22px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            border: 1px solid #333;
+            transition: 0.2s;
+        }
+
+        .modulo:hover {
+            border-color: #e63946;
+            transform: translateY(-3px);
+            background: #292929;
+        }
+
+        .modulo .icono {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .modulo h3 {
+            margin: 0 0 9px;
+            color: #e63946;
+        }
+
+        .modulo p {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        .zona-modulo {
+            display: none;
+            margin-top: 35px;
+            background: #242424;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .zona-modulo.activa {
+            display: block;
+        }
+
+        .barra-modulo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .barra-modulo h2 {
+            color: #e63946;
+            margin: 0;
+        }
+
+        .volver {
+            background: #e63946;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .contenido-modulo {
+            width: 100%;
+            height: 850px;
+            border: none;
+            background: #151515;
+            border-radius: 6px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+            .encabezado {
+                padding: 18px;
+            }
+
+            .contenedor {
+                padding: 20px 14px;
+            }
+
+            .contenido-modulo {
+                height: 750px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="encabezado">
+
+        <div>
+            <h1>ContaPro Colombia</h1>
+            <p>Sistema de gestión empresarial y contabilidad</p>
+        </div>
+
+        <a href="/logout" class="cerrar">
+            Cerrar sesión
+        </a>
+
+    </header>
+
+    <main class="contenedor">
+
+        <section id="inicio">
+
+            <section class="bienvenida">
+
+                <h2>Panel principal</h2>
+
+                <p>
+                    Bienvenido a ContaPro.
+                    Empresa: <strong>{{ empresa }}</strong>
+                </p>
+
+                <p>
+                    Selecciona el módulo que deseas utilizar.
+                </p>
+
+            </section>
+
+            <h2 class="seccion-titulo">Resumen del negocio</h2>
+
+            <section class="resumen">
+
+                <article class="tarjeta-resumen">
+                    <span>Total de ingresos</span>
+                    <strong>{{ resumen.ingresos }}</strong>
+                </article>
+
+                <article class="tarjeta-resumen">
+                    <span>Total de gastos</span>
+                    <strong>{{ resumen.gastos }}</strong>
+                </article>
+
+                <article class="tarjeta-resumen">
+                    <span>Ganancia</span>
+                    <strong>{{ resumen.ganancia }}</strong>
+                </article>
+
+                <article class="tarjeta-resumen">
+                    <span>Productos registrados</span>
+                    <strong>{{ resumen.productos }}</strong>
+                </article>
+
+            </section>
+
+            <h2 class="seccion-titulo">Módulos del sistema</h2>
+
+            <section class="modulos">
+
+                <a href="/ventas" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">💰</div>
+                    <h3>Ventas</h3>
+                    <p>Registrar ingresos y ventas del negocio.</p>
+                </a>
+
+                <a href="/gastos" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">💸</div>
+                    <h3>Gastos</h3>
+                    <p>Registrar y controlar los gastos.</p>
+                </a>
+
+                <a href="/compras" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">🛒</div>
+                    <h3>Compras</h3>
+                    <p>Registrar compras a proveedores y productos.</p>
+                </a>
+
+                <a href="/inventario" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">📦</div>
+                    <h3>Inventario</h3>
+                    <p>Administrar productos, precios y existencias.</p>
+                </a>
+
+                <a href="/clientes" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">👥</div>
+                    <h3>Clientes</h3>
+                    <p>Registrar y consultar los clientes.</p>
+                </a>
+
+                <a href="/proveedores" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">🏢</div>
+                    <h3>Proveedores</h3>
+                    <p>Administrar la información de proveedores.</p>
+                </a>
+
+                <a href="/caja-bancos" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">🏦</div>
+                    <h3>Caja y bancos</h3>
+                    <p>Consultar saldos y movimientos financieros.</p>
+                </a>
+
+                <a href="/contabilidad" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">📊</div>
+                    <h3>Contabilidad</h3>
+                    <p>Consultar ingresos, gastos y resultados.</p>
+                </a>
+
+                <a href="/informes" class="modulo" onclick="abrirModulo(event, this)">
+                    <div class="icono">📈</div>
+                    <h3>Informes</h3>
+                    <p>Consultar informes del negocio e inventario.</p>
+                </a>
+
+            </section>
+
+        </section>
+
+        <section id="zonaModulo" class="zona-modulo">
+
+            <div class="barra-modulo">
+
+                <h2 id="tituloModulo">Módulo</h2>
+
+                <button class="volver" onclick="volverInicio()">
+                    ← Volver al panel principal
+                </button>
+
+            </div>
+
+            <iframe
+                id="contenidoModulo"
+                class="contenido-modulo"
+                title="Contenido del módulo">
+            </iframe>
+
+        </section>
+
+    </main>
+
+    <footer>
+        ContaPro Colombia © 2026
+    </footer>
+
+    <script>
+
+        function abrirModulo(evento, elemento) {
+
+            evento.preventDefault();
+
+            const direccion = elemento.getAttribute("href");
+            const titulo = elemento.querySelector("h3").textContent;
+
+            document.getElementById("inicio").style.display = "none";
+
+            document.getElementById("zonaModulo").classList.add("activa");
+
+            document.getElementById("tituloModulo").textContent = titulo;
+
+            document.getElementById("contenidoModulo").src = direccion;
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+        function volverInicio() {
+
+            document.getElementById("contenidoModulo").src = "about:blank";
+
+            document.getElementById("zonaModulo").classList.remove("activa");
+
+            document.getElementById("inicio").style.display = "block";
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+    </script>
+
+</body>
+</html>

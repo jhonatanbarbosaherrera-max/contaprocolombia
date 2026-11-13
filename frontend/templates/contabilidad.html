@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabilidad | ContaPro Colombia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .contenedor {
+            max-width: 1250px;
+            margin: auto;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #e53935;
+            margin: 0;
+        }
+
+        .volver {
+            background: #292929;
+            color: white;
+            padding: 12px 18px;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+
+        .filtros {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: end;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        input {
+            padding: 11px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .tarjeta {
+            background: #222;
+            padding: 22px;
+            border-radius: 10px;
+            border-left: 4px solid #e53935;
+        }
+
+        .tarjeta h3 {
+            color: #bbb;
+            font-size: 15px;
+            margin-top: 0;
+        }
+
+        .valor {
+            font-size: 25px;
+            font-weight: bold;
+            margin: 10px 0 0;
+        }
+
+        .ingreso {
+            color: #4caf50;
+        }
+
+        .gasto {
+            color: #ff5252;
+        }
+
+        .ganancia {
+            color: #64b5f6;
+        }
+
+        .seccion {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .seccion h2 {
+            color: #e53935;
+            margin-top: 0;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            color: #e53935;
+        }
+
+        .vacio {
+            text-align: center;
+            color: #aaa;
+            padding: 25px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .valor {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <div class="encabezado">
+        <div>
+            <h1>Contabilidad básica</h1>
+            <p>Resumen financiero de tu empresa</p>
+        </div>
+
+        <a href="/" class="volver">Volver al panel</a>
+    </div>
+
+    <form method="GET" action="/contabilidad" class="filtros">
+
+        <div class="campo">
+            <label>Fecha inicial</label>
+            <input type="date" name="desde" value="{{ desde }}">
+        </div>
+
+        <div class="campo">
+            <label>Fecha final</label>
+            <input type="date" name="hasta" value="{{ hasta }}">
+        </div>
+
+        <button type="submit">Consultar período</button>
+
+        <a href="/contabilidad" class="volver">Limpiar</a>
+
+    </form>
+
+    <div class="tarjetas">
+
+        <div class="tarjeta">
+            <h3>Total de ingresos</h3>
+            <p class="valor ingreso">{{ resumen.ingresos }}</p>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Total de gastos</h3>
+            <p class="valor gasto">{{ resumen.gastos }}</p>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Ganancia o pérdida</h3>
+            <p class="valor ganancia">{{ resumen.ganancia }}</p>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Total de operaciones</h3>
+            <p class="valor">{{ resumen.operaciones }}</p>
+        </div>
+
+    </div>
+
+    <div class="seccion">
+
+        <h2>Balance del período</h2>
+
+        <p>
+            Ingresos:
+            <strong class="ingreso">{{ resumen.ingresos }}</strong>
+        </p>
+
+        <p>
+            Gastos:
+            <strong class="gasto">{{ resumen.gastos }}</strong>
+        </p>
+
+        <p>
+            Resultado:
+            <strong class="ganancia">{{ resumen.ganancia }}</strong>
+        </p>
+
+    </div>
+
+    <div class="seccion">
+
+        <h2>Historial de movimientos</h2>
+
+        <div class="tabla-contenedor">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for movimiento in movimientos %}
+
+                    <tr>
+                        <td>{{ movimiento.fecha }}</td>
+
+                        <td>
+                            {% if movimiento.tipo == "ingreso" %}
+                                <span class="ingreso">Ingreso</span>
+                            {% else %}
+                                <span class="gasto">Gasto</span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ movimiento.descripcion }}</td>
+
+                        <td>
+                            $ {{ "{:,.0f}".format(movimiento.valor|float).replace(",", ".") }}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="4" class="vacio">
+                            No hay movimientos registrados en este período.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

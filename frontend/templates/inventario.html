@@ -1,0 +1,479 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario | ContaPro Colombia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #151515;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .contenedor {
+            max-width: 1300px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #e63946;
+        }
+
+        .formulario, .inventario {
+            background: #242424;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .formulario {
+            max-width: 600px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: none;
+            border-radius: 6px;
+            background: #eeeeee;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button {
+            padding: 11px 15px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-guardar {
+            background: #e63946;
+            margin-top: 20px;
+        }
+
+        .btn-editar {
+            background: #2563eb;
+        }
+
+        .btn-eliminar {
+            background: #b91c1c;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 7px;
+        }
+
+        .error {
+            color: #ff7070;
+        }
+
+        .alerta {
+            background: #513b19;
+            color: #ffd27a;
+            padding: 12px;
+            border-radius: 7px;
+            margin-bottom: 15px;
+        }
+
+        .buscador {
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            color: #e63946;
+        }
+
+        .stock-bajo {
+            color: #ff7777;
+            font-weight: bold;
+        }
+
+        .stock-normal {
+            color: #8be29b;
+        }
+
+        .sin-productos {
+            color: #bbbbbb;
+            padding: 20px;
+        }
+
+        .volver {
+            display: inline-block;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-contenido {
+            background: #242424;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 550px;
+            margin: 30px auto;
+        }
+
+        .btn-cerrar {
+            background: #555;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .formulario, .inventario {
+                padding: 16px;
+            }
+
+            .acciones {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <a class="volver" href="/">← Volver al panel principal</a>
+
+    <h1>Inventario de productos</h1>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <section class="formulario">
+
+        <h2>Registrar producto</h2>
+
+        <p>Agrega un producto al inventario de tu negocio.</p>
+
+        <form action="/inventario" method="post">
+
+            <label>Nombre del producto</label>
+            <input type="text" name="nombre" maxlength="150"
+                   placeholder="Ejemplo: Camiseta" required>
+
+            <label>Código del producto</label>
+            <input type="text" name="codigo"
+                   placeholder="Ejemplo: PROD004">
+
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3"
+                      placeholder="Descripción del producto"></textarea>
+
+            <label>Precio de compra</label>
+            <input type="number" name="precio_compra"
+                   min="0" step="0.01" required>
+
+            <label>Precio de venta</label>
+            <input type="number" name="precio_venta"
+                   min="0" step="0.01" required>
+
+            <label>Cantidad disponible</label>
+            <input type="number" name="stock" min="0" required>
+
+            <label>Stock mínimo</label>
+            <input type="number" name="stock_minimo" min="0" required>
+
+            <button class="btn-guardar" type="submit">
+                Guardar producto
+            </button>
+
+        </form>
+
+    </section>
+
+    <section class="inventario">
+
+        <h2>Productos registrados</h2>
+
+        {% set productos = productos or [] %}
+
+        <input
+            type="text"
+            id="buscador"
+            class="buscador"
+            placeholder="Buscar por nombre o código..."
+            oninput="buscarProductos()"
+        >
+
+        {% if productos %}
+
+            {% for producto in productos %}
+                {% if producto.stock|float <= producto.stock_minimo|float %}
+                    <div class="alerta">
+                        Atención: {{ producto.nombre }} tiene pocas existencias.
+                        Disponible: {{ producto.stock }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="tabla-contenedor">
+
+                <table id="tablaProductos">
+
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Código</th>
+                            <th>Compra</th>
+                            <th>Venta</th>
+                            <th>Disponible</th>
+                            <th>Stock mínimo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for producto in productos %}
+
+                        <tr>
+                            <td>{{ producto.nombre }}</td>
+
+                            <td>{{ producto.codigo or 'Sin código' }}</td>
+
+                            <td>
+                                $ {{ "{:,.0f}".format(producto.precio_compra|float).replace(",", ".") }}
+                            </td>
+
+                            <td>
+                                $ {{ "{:,.0f}".format(producto.precio_venta|float).replace(",", ".") }}
+                            </td>
+
+                            <td>{{ producto.stock }}</td>
+
+                            <td>{{ producto.stock_minimo }}</td>
+
+                            <td>
+                                {% if producto.stock|float <= producto.stock_minimo|float %}
+                                    <span class="stock-bajo">Stock bajo</span>
+                                {% else %}
+                                    <span class="stock-normal">Disponible</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="acciones">
+
+                                    <button
+                                        type="button"
+                                        class="btn-editar"
+                                        onclick="editarProducto('{{ producto.id }}', this)"
+                                        data-nombre="{{ producto.nombre }}"
+                                        data-codigo="{{ producto.codigo or '' }}"
+                                        data-descripcion="{{ producto.descripcion or '' }}"
+                                        data-compra="{{ producto.precio_compra }}"
+                                        data-venta="{{ producto.precio_venta }}"
+                                        data-stock="{{ producto.stock }}"
+                                        data-minimo="{{ producto.stock_minimo }}"
+                                    >
+                                        Editar
+                                    </button>
+
+                                    <form
+                                        action="/inventario/eliminar/{{ producto.id }}"
+                                        method="post"
+                                        onsubmit="return confirm('¿Estás seguro de eliminar este producto?');"
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="btn-eliminar"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <p class="sin-productos">
+                Todavía no hay productos registrados.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+<div class="modal" id="modalEditar">
+
+    <div class="modal-contenido">
+
+        <h2>Editar producto</h2>
+
+        <form id="formEditar" method="post">
+
+            <label>Nombre del producto</label>
+            <input type="text" name="nombre" id="editNombre" required>
+
+            <label>Código</label>
+            <input type="text" name="codigo" id="editCodigo">
+
+            <label>Descripción</label>
+            <textarea name="descripcion" id="editDescripcion" rows="3"></textarea>
+
+            <label>Precio de compra</label>
+            <input type="number" name="precio_compra"
+                   id="editCompra" min="0" step="0.01" required>
+
+            <label>Precio de venta</label>
+            <input type="number" name="precio_venta"
+                   id="editVenta" min="0" step="0.01" required>
+
+            <label>Cantidad disponible</label>
+            <input type="number" name="stock"
+                   id="editStock" min="0" required>
+
+            <label>Stock mínimo</label>
+            <input type="number" name="stock_minimo"
+                   id="editMinimo" min="0" required>
+
+            <button type="submit" class="btn-guardar">
+                Guardar cambios
+            </button>
+
+            <button
+                type="button"
+                class="btn-cerrar"
+                onclick="cerrarModal()"
+            >
+                Cancelar
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+    function buscarProductos() {
+
+        const filtro = document.getElementById("buscador")
+            .value.toLowerCase();
+
+        const filas = document.querySelectorAll(
+            "#tablaProductos tbody tr"
+        );
+
+        filas.forEach(function(fila) {
+
+            const contenido = fila.textContent.toLowerCase();
+
+            fila.style.display = contenido.includes(filtro)
+                ? ""
+                : "none";
+
+        });
+    }
+
+    function editarProducto(id, boton) {
+
+        document.getElementById("formEditar").action =
+            "/inventario/editar/" + encodeURIComponent(id);
+
+        document.getElementById("editNombre").value =
+            boton.dataset.nombre;
+
+        document.getElementById("editCodigo").value =
+            boton.dataset.codigo;
+
+        document.getElementById("editDescripcion").value =
+            boton.dataset.descripcion;
+
+        document.getElementById("editCompra").value =
+            boton.dataset.compra;
+
+        document.getElementById("editVenta").value =
+            boton.dataset.venta;
+
+        document.getElementById("editStock").value =
+            boton.dataset.stock;
+
+        document.getElementById("editMinimo").value =
+            boton.dataset.minimo;
+
+        document.getElementById("modalEditar").style.display = "block";
+    }
+
+    function cerrarModal() {
+
+        document.getElementById("modalEditar").style.display = "none";
+
+    }
+
+</script>
+
+</body>
+</html>
