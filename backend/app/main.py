@@ -1285,6 +1285,7 @@ def registrar_compra(
     precio_unitario: list[float] = Form(...),
     fecha: str = Form(...),
     metodo_pago: str = Form(...),
+    cuenta_id: str = Form(""),
     descripcion: str = Form(""),
 ):
     token = request.cookies.get("access_token")
@@ -1336,6 +1337,23 @@ def registrar_compra(
             raise ValueError(
                 "El proveedor seleccionado no existe."
             )
+
+        # Compra a crédito no afecta una cuenta hasta su pago.
+        if metodo_pago == "Crédito":
+            cuenta_id = None
+        else:
+            if not cuenta_id:
+                raise ValueError("Selecciona la cuenta desde donde pagaste.")
+            cuenta = (
+                cliente.table("cuentas_financieras")
+                .select("id")
+                .eq("id", cuenta_id)
+                .eq("empresa_id", empresa_id)
+                .eq("activo", True)
+                .execute()
+            )
+            if not cuenta.data:
+                raise ValueError("La cuenta seleccionada no existe o está inactiva.")
 
         detalles_por_producto = {}
 
@@ -1421,6 +1439,8 @@ def registrar_compra(
                 "proveedor_id": proveedor_id,
                 "fecha": fecha,
                 "descripcion": descripcion_final,
+                "metodo_pago": metodo_pago,
+                "cuenta_id": cuenta_id,
                 "total": total,
             })
             .execute()
@@ -1467,7 +1487,9 @@ def registrar_compra(
 
         # La compra se registra como gasto una sola vez.
         cliente.table("gastos").insert({
+            "usuario_id": usuario_id,
             "empresa_id": empresa_id,
+            "cuenta_id": cuenta_id,
             "descripcion": (
                 "Compra a proveedor: " + descripcion_final
             ),

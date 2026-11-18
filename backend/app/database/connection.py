@@ -1,26 +1,19 @@
-import os
+"""Utilidades de conexión para ContaPro Colombia.
 
-from dotenv import load_dotenv
-from supabase import create_client
+Las consultas a tablas protegidas deben ejecutarse con el JWT del usuario
+autenticado; no se debe consultar información empresarial sin sesión.
+"""
 
-load_dotenv()
+from backend.app.database.supabase_client import crear_cliente
 
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
 
-supabase = create_client(url, key)
+def comprobar_acceso_usuario(access_token):
+    if not access_token:
+        raise ValueError("Se requiere el token de un usuario autenticado.")
 
-try:
-    resultado = (
-        supabase.table("empresas")
-        .select("*")
-        .limit(5)
-        .execute()
-    )
-
-    print("CONEXION EXITOSA")
-    print("Empresas encontradas:", len(resultado.data))
-
-except Exception as error:
-    print("ERROR DE CONEXION:")
-    print(error)
+    cliente = crear_cliente(access_token)
+    usuario = cliente.auth.get_user(access_token)
+    return {
+        "conectado": True,
+        "usuario_id": usuario.user.id,
+    }

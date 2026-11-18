@@ -1,16 +1,9 @@
-﻿import os
+"""Compatibilidad para módulos antiguos de ContaPro.
 
-from dotenv import load_dotenv
-from supabase import create_client
+Usa la misma configuración central y nunca incorpora claves secretas.
+Para consultar tablas protegidas, pasa el JWT del usuario a crear_cliente().
+"""
 
-load_dotenv()
+from backend.app.database.supabase_client import crear_cliente
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Faltan las variables de conexión en .env")
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-print("Conexión con Supabase inicializada correctamente.")
+supabase = crear_cliente()
